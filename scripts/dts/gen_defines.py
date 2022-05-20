@@ -163,6 +163,7 @@ def write_device_extern_header(device_header_out, edt):
         print('extern "C" {', file=dev_header_file)
         print("#endif", file=dev_header_file)
         print("", file=dev_header_file)
+        print("#include <zephyr/device.h>", file=dev_header_file)
 
         for node in sorted(edt.nodes, key=lambda node: node.dep_ordinal):
             print(f"extern const struct device DEVICE_DT_NAME_GET(DT_{node.z_path_id}); /* dts_ord_{node.dep_ordinal} */",
