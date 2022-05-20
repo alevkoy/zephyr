@@ -102,6 +102,24 @@ extern const struct emul __emul_list_end[];
 	};
 
 /**
+ * @def EMUL_DT_GET
+ *
+ * @brief Get a <tt>const struct emul*</tt> from a devicetree node identifier
+ *
+ * @details Returns a pointer to an emulator object created from a devicetree
+ * node, if any device was allocated by an emulator implementation.
+ *
+ * If no such device was allocated, this will fail at linker time. If you get an
+ * error that looks like <tt>undefined reference to __device_dts_ord_<N></tt>,
+ * that is what happened. Check to make sure your emulator implementation is
+ * being compiled, usually by enabling the Kconfig options it requires.
+ *
+ * @param node_id A devicetree node identifier
+ * @return A pointer to the emul object created for that node
+ */
+#define EMUL_DT_GET(node_id) (&EMUL_DT_NAME_GET(node_id))
+
+/**
  * Set up a list of emulators
  *
  * @param dev Device the emulators are attached to (e.g. an I2C controller)
