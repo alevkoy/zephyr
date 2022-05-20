@@ -67,7 +67,16 @@ struct emul {
 extern const struct emul __emul_list_start[];
 extern const struct emul __emul_list_end[];
 
-/* Use the devicetree node identifier as a unique name. */
+/**
+ * @brief Use the devicetree node identifier as a unique name.
+ */
+#define EMUL_DT_NAME_GET(node_id) (_CONCAT(__emulreg_, node_id))
+
+/**
+ * @brief Use the devicetree node identifier as a unique name.
+ *
+ * @deprecated Use EMUL_DT_NAME_GET instead
+ */
 #define EMUL_REG_NAME(node_id) (_CONCAT(__emulreg_, node_id))
 
 /**
@@ -83,7 +92,8 @@ extern const struct emul __emul_list_end[];
  * @param data_ptr emulator-specific data
  */
 #define EMUL_DEFINE(init_ptr, node_id, cfg_ptr, data_ptr)                                          \
-	static struct emul EMUL_REG_NAME(node_id) __attribute__((__section__(".emulators")))       \
+	const struct emul EMUL_DT_NAME_GET(node_id)                                                \
+	__attribute__((__section__(".emulators")))        \
 	__used = {                                                                                 \
 		.init = (init_ptr),                                                                \
 		.dev_label = DT_LABEL(node_id),                                                    \
