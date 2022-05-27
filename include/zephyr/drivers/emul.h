@@ -8,6 +8,7 @@
 #ifndef ZEPHYR_INCLUDE_DRIVERS_EMUL_H_
 #define ZEPHYR_INCLUDE_DRIVERS_EMUL_H_
 
+#include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 
 /**
@@ -20,7 +21,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-struct device;
 struct emul;
 
 /**
