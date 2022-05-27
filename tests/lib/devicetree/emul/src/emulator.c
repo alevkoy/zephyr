@@ -18,5 +18,5 @@ static int emul_init(const struct emul *dev_emul, const struct device *parent)
  * This emulator definition is deliberately in a different compilation unit than
  * test_emuL_dt_get to verify that emulators are externally accessible.
  */
-#define EMUL_INIT(n) EMUL_DEFINE(emul_init, DT_DRV_INST(n), NULL, NULL)
+#define EMUL_INIT(n) EMUL_DT_INST_DEFINE(n, emul_init, NULL, NULL)
 DT_INST_FOREACH_STATUS_OKAY(EMUL_INIT)

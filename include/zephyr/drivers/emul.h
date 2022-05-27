@@ -8,6 +8,8 @@
 #ifndef ZEPHYR_INCLUDE_DRIVERS_EMUL_H_
 #define ZEPHYR_INCLUDE_DRIVERS_EMUL_H_
 
+#include <zephyr/devicetree.h>
+
 /**
  * @brief Emulators used to test drivers and higher-level code that uses them
  * @defgroup io_emulators Emulator interface
@@ -80,26 +82,48 @@ extern const struct emul __emul_list_end[];
 #define EMUL_REG_NAME(node_id) (_CONCAT(__emulreg_, node_id))
 
 /**
- * Define a new emulator
+ * @brief Define a new emulator
  *
  * This adds a new struct emul to the linker list of emulations. This is
  * typically used in your emulator's DT_INST_FOREACH_STATUS_OKAY() clause.
  *
- * @param init_ptr function to call to initialise the emulator (see emul_init
- *	typedef)
  * @param node_id Node ID of the driver to emulate (e.g. DT_DRV_INST(n))
- * @param cfg_ptr emulator-specific configuration data
+ * @param init_fn function to call to initialise the emulator (see emul_init
+ *	typedef)
  * @param data_ptr emulator-specific data
+ * @param cfg_ptr emulator-specific configuration data
  */
-#define EMUL_DEFINE(init_ptr, node_id, cfg_ptr, data_ptr)                                          \
+#define EMUL_DT_DEFINE(node_id, init_fn, data_ptr, cfg_ptr)                                        \
 	const struct emul EMUL_DT_NAME_GET(node_id)                                                \
-	__attribute__((__section__(".emulators")))        \
+	__attribute__((__section__(".emulators")))                                                 \
 	__used = {                                                                                 \
-		.init = (init_ptr),                                                                \
+		.init = (init_fn),                                                                 \
 		.dev_label = DT_LABEL(node_id),                                                    \
 		.cfg = (cfg_ptr),                                                                  \
 		.data = (data_ptr),                                                                \
 	};
+
+/**
+ * @brief Define a new emulator
+ *
+ * Prefer EMUL_DT_DEFINE
+ */
+#define EMUL_DEFINE(init_ptr, node_id, cfg_ptr, data_ptr) \
+	EMUL_DT_DEFINE(node_id, init_ptr, data_ptr, cfg_ptr)
+
+/**
+ * @def EMUL_DT_INST_DEFINE
+ *
+ * @brief Like EMUL_DT_DEFINE(), but uses an instance of a
+ * DT_DRV_COMPAT compatible instead of a node identifier.
+ *
+ * @param inst instance number. The @p node_id argument to
+ * EMUL_DT_DEFINE is set to <tt>DT_DRV_INST(inst)</tt>.
+ *
+ * @param ... other parameters as expected by DEVICE_DT_DEFINE.
+ */
+#define EMUL_DT_INST_DEFINE(inst, ...) \
+	EMUL_DT_DEFINE(DT_DRV_INST(inst), __VA_ARGS__)
 
 /**
  * @def EMUL_DT_GET
