@@ -1,0 +1,10 @@
+tests:
+  usbc.sink:
+    platform_allow: qemu_cortex_m0 qemu_cortex_a9 qemu_cortex_a53_smp qemu_x86_64 qemu_riscv64_smp
+#    platform_allow: qemu_riscv64_smp qemu_riscv32_smp qemu_cortex_a53_smp qemu_x86_64
+#qemu_arc_hs6x
+#qemu_cortex_a53_smp
+#qemu_cortex_m0
+#    platform_exclude: qemu_leon3 qemu_malta_be
+#qemu_cortex_a53_smp qemu_x86_64 qemu_riscv32_smp qemu_riscv64_smp 
+    tags: usbc sink
