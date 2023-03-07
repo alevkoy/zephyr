@@ -125,7 +125,7 @@ enum tcpc_state_t {
 	TS_DONT_SEND_GOODCRC,
 };
 
-void tc_set_state(enum tcpc_state_t ts);
+void tcpc_set_state(enum tcpc_state_t ts);
 
 /**
  * @brief Events for ucpd_alert_handler

@@ -651,7 +651,7 @@ static void bring_up_sink_uut(const struct device *dev)
 	union pd_fixed_supply_pdo_source pdo;
 
 	/* The TCPC sends a GoodCRC */
-	tc_set_state(TS_SEND_GOODCRC);
+	tcpc_set_state(TS_SEND_GOODCRC);
 
 	/* Initialize test variables */
 	data->uut_tc_state = ATOMIC_INIT(0);

@@ -376,7 +376,7 @@ static int mt_init(const struct device *dev)
 	return 0;
 }
 
-void tc_set_state(enum tcpc_state_t ts)
+void tcpc_set_state(enum tcpc_state_t ts)
 {
 	test_state = ts;	
 }
