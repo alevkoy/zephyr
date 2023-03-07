@@ -193,6 +193,7 @@ static void delay_for(int ms)
 }
 
 
+#if 0
 static void stop_tc_timer(const struct device *dev, enum tc_state_tests uut_state)
 {
 	struct port1_data_t *data = usbc_get_dpm_data(dev);
@@ -216,6 +217,7 @@ static void stop_prl_tx_timer(const struct device *dev, enum prl_tx_state_tests 
 	data->prl_tx_timeout[uut_state] = k_timer_remaining_get(&data->prl_tx_timer[uut_state]);
 	k_timer_stop(&data->prl_tx_timer[uut_state]);
 }
+#endif
 
 static void stop_policy_timer(const struct device *dev)
 {
@@ -290,6 +292,7 @@ static void uut_notify(const struct device *dev,
 	case SOURCE_CAPABILITIES_RECEIVED:
 		break;
 
+#if 0
 	/* Unknown enum values. */
 	case TC_UNATTACHED_SNK:
 		stop_tc_timer(dev, TC_UNATTACHED_SNK_BIT);
@@ -379,6 +382,7 @@ static void uut_notify(const struct device *dev,
 		stop_pe_timer(dev, PE_SUSPEND_NOTIFY_TEST);
 		atomic_set_bit(&data->uut_pe_state, PE_SUSPEND_NOTIFY_TEST);
 		break;
+#endif
 	}
 }
 
@@ -396,6 +400,9 @@ bool uut_policy_check(const struct device *dev,
 		return data->pp_check_data_role_swap_to_ufp;
 	case CHECK_SNK_AT_DEFAULT_LEVEL:
 		return data->pp_check_snk_at_default_level;
+	/* TODO: Placeholder */
+	case CHECK_VCONN_CONTROL:
+		return true;
 	}
 
 	return false;
