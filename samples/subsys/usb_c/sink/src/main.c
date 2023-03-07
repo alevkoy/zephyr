@@ -231,23 +231,23 @@ static void uut_notify(const struct device *dev,
 	struct port1_data_t *data = usbc_get_dpm_data(dev);
 
 	switch (policy_notify) {
-	case PROTOCOL_ERROR:
-		atomic_set(&data->pn_protocol_error, true);
-		break;
-	case MSG_DISCARDED:
-		atomic_set(&data->pn_msg_discarded, true);
-		break;
 	case MSG_ACCEPT_RECEIVED:
 		atomic_set(&data->pn_msg_accept_received, true);
 		break;
 	case MSG_REJECTED_RECEIVED:
 		atomic_set(&data->pn_msg_rejected_received, true);
 		break;
+	case MSG_DISCARDED:
+		atomic_set(&data->pn_msg_discarded, true);
+		break;
 	case MSG_NOT_SUPPORTED_RECEIVED:
 		atomic_set(&data->pn_msg_not_supported_received, true);
 		break;
-	case TRANSITION_PS:
-		atomic_set(&data->pn_transition_ps, true);
+	case DATA_ROLE_IS_UFP:
+		atomic_set(&data->pn_data_role_is_ufp, true);
+		break;
+	case DATA_ROLE_IS_DFP:
+		atomic_set(&data->pn_data_role_is_dfp, true);
 		break;
 	case PD_CONNECTED:
 		stop_policy_timer(dev);
@@ -255,6 +255,22 @@ static void uut_notify(const struct device *dev,
 		break;
 	case NOT_PD_CONNECTED:
 		atomic_set(&data->pn_not_pd_connected, true);
+		break;
+	case TRANSITION_PS:
+		atomic_set(&data->pn_transition_ps, true);
+		break;
+	case PORT_PARTNER_NOT_RESPONSIVE:
+		stop_policy_timer(dev);
+		atomic_set(&data->pn_port_partner_not_responsive, true);
+		break;
+	case PROTOCOL_ERROR:
+		atomic_set(&data->pn_protocol_error, true);
+		break;
+	case SNK_TRANSITION_TO_DEFAULT:
+		atomic_set(&data->pn_snk_transition_to_default, true);
+		break;
+	case HARD_RESET_RECEIVED:
+		atomic_set(&data->pn_hard_reset_received, true);
 		break;
 	case POWER_CHANGE_0A0:
 		atomic_set(&data->pn_power_change_0a0, true);
@@ -268,23 +284,13 @@ static void uut_notify(const struct device *dev,
 	case POWER_CHANGE_3A0:
 		atomic_set(&data->pn_power_change_3a0, true);
 		break;
-	case DATA_ROLE_IS_UFP:
-		atomic_set(&data->pn_data_role_is_ufp, true);
+	/* New enum values that Sam didn't have originally. */
+	case SENDER_RESPONSE_TIMEOUT:
 		break;
-	case DATA_ROLE_IS_DFP:
-		atomic_set(&data->pn_data_role_is_dfp, true);
-		break;
-	case PORT_PARTNER_NOT_RESPONSIVE:
-		stop_policy_timer(dev);
-		atomic_set(&data->pn_port_partner_not_responsive, true);
-		break;
-	case SNK_TRANSITION_TO_DEFAULT:
-		atomic_set(&data->pn_snk_transition_to_default, true);
-		break;
-	case HARD_RESET_RECEIVED:
-		atomic_set(&data->pn_hard_reset_received, true);
+	case SOURCE_CAPABILITIES_RECEIVED:
 		break;
 
+	/* Unknown enum values. */
 	case TC_UNATTACHED_SNK:
 		stop_tc_timer(dev, TC_UNATTACHED_SNK_BIT);
 		atomic_set_bit(&data->uut_tc_state, TC_UNATTACHED_SNK_BIT);
@@ -296,6 +302,11 @@ static void uut_notify(const struct device *dev,
 	case TC_ATTACHED_SNK:
 		stop_tc_timer(dev, TC_ATTACHED_SNK_BIT);
 		atomic_set_bit(&data->uut_tc_state, TC_ATTACHED_SNK_BIT);
+		break;
+
+	case PRL_TX_WAIT_FOR_MESSAGE_REQUEST_NOTIFY:
+		stop_prl_tx_timer(dev, PRL_TX_WAIT_FOR_MESSAGE_REQUEST_NOTIFY_TEST);
+		atomic_set_bit(&data->uut_prl_tx_state, PRL_TX_WAIT_FOR_MESSAGE_REQUEST_NOTIFY_TEST);
 		break;
 
 	case PE_SNK_STARTUP_NOTIFY:
@@ -367,11 +378,6 @@ static void uut_notify(const struct device *dev,
 	case PE_SUSPEND_NOTIFY:
 		stop_pe_timer(dev, PE_SUSPEND_NOTIFY_TEST);
 		atomic_set_bit(&data->uut_pe_state, PE_SUSPEND_NOTIFY_TEST);
-		break;
-
-	case PRL_TX_WAIT_FOR_MESSAGE_REQUEST_NOTIFY:
-		stop_prl_tx_timer(dev, PRL_TX_WAIT_FOR_MESSAGE_REQUEST_NOTIFY_TEST);
-		atomic_set_bit(&data->uut_prl_tx_state, PRL_TX_WAIT_FOR_MESSAGE_REQUEST_NOTIFY_TEST);
 		break;
 	}
 }
