@@ -238,6 +238,8 @@ void pe_report_error(const struct device *dev, const enum pe_error e,
 	struct usbc_port_data *data = dev->data;
 	struct policy_engine *pe = data->pe;
 
+	/* TODO: Do not soft reset for chunk timeouts from PRL. */
+
 	/*
 	 * Generate Hard Reset if Protocol Error occurred
 	 * while in PE_Send_Soft_Reset state.
@@ -450,7 +452,8 @@ void extended_message_not_supported(const struct device *dev)
 
 	ext_header.raw_value = *payload;
 
-	if (ext_header.chunked && ext_header.data_size > PD_MAX_EXTENDED_MSG_CHUNK_LEN) {
+	if (!IS_ENABLED(CONFIG_USBC_PRL_CHUNKING) && ext_header.chunked &&
+	    ext_header.data_size > PD_MAX_EXTENDED_MSG_CHUNK_LEN) {
 		pe_set_state(dev, PE_CHUNK_RECEIVED);
 	} else {
 		pe_set_state(dev, PE_SEND_NOT_SUPPORTED);
@@ -885,7 +888,7 @@ static void pe_send_not_supported_run(void *obj)
 /**
  * @brief 8.3.3.6.2.3 PE_SNK_Chunk_Received State
  */
-static void pe_chunk_received_entry(void *obj)
+__maybe_unused static void pe_chunk_received_entry(void *obj)
 {
 	struct policy_engine *pe = (struct policy_engine *)obj;
 
@@ -901,7 +904,7 @@ static void pe_chunk_received_entry(void *obj)
 /**
  * @brief PE_Chunk_Received Run State
  */
-static void pe_chunk_received_run(void *obj)
+__maybe_unused static void pe_chunk_received_run(void *obj)
 {
 	struct policy_engine *pe = (struct policy_engine *)obj;
 	const struct device *dev = pe->dev;
@@ -978,100 +981,45 @@ static void pe_sender_response_exit(void *obj)
  */
 static const struct smf_state pe_states[PE_STATE_COUNT] = {
 	/* PE Super States */
-	[PE_SENDER_RESPONSE_PARENT] = SMF_CREATE_STATE(
-		NULL,
-		pe_sender_response_run,
-		pe_sender_response_exit,
-		NULL),
-	[PE_SNK_STARTUP] = SMF_CREATE_STATE(
-		pe_snk_startup_entry,
-		pe_snk_startup_run,
-		NULL,
-		NULL),
-	[PE_SNK_DISCOVERY] = SMF_CREATE_STATE(
-		pe_snk_discovery_entry,
-		pe_snk_discovery_run,
-		NULL,
-		NULL),
-	[PE_SNK_WAIT_FOR_CAPABILITIES] = SMF_CREATE_STATE(
-		pe_snk_wait_for_capabilities_entry,
-		pe_snk_wait_for_capabilities_run,
-		pe_snk_wait_for_capabilities_exit,
-		NULL),
-	[PE_SNK_EVALUATE_CAPABILITY] = SMF_CREATE_STATE(
-		pe_snk_evaluate_capability_entry,
-		NULL,
-		NULL,
-		NULL),
-	[PE_SNK_SELECT_CAPABILITY] = SMF_CREATE_STATE(
-		pe_snk_select_capability_entry,
-		pe_snk_select_capability_run,
-		NULL,
-		&pe_states[PE_SENDER_RESPONSE_PARENT]),
-	[PE_SNK_READY] = SMF_CREATE_STATE(
-		pe_snk_ready_entry,
-		pe_snk_ready_run,
-		NULL,
-		NULL),
-	[PE_SNK_HARD_RESET] = SMF_CREATE_STATE(
-		pe_snk_hard_reset_entry,
-		pe_snk_hard_reset_run,
-		NULL,
-		NULL),
+	[PE_SENDER_RESPONSE_PARENT] =
+		SMF_CREATE_STATE(NULL, pe_sender_response_run, pe_sender_response_exit, NULL),
+	[PE_SNK_STARTUP] = SMF_CREATE_STATE(pe_snk_startup_entry, pe_snk_startup_run, NULL, NULL),
+	[PE_SNK_DISCOVERY] =
+		SMF_CREATE_STATE(pe_snk_discovery_entry, pe_snk_discovery_run, NULL, NULL),
+	[PE_SNK_WAIT_FOR_CAPABILITIES] = SMF_CREATE_STATE(pe_snk_wait_for_capabilities_entry,
+							  pe_snk_wait_for_capabilities_run,
+							  pe_snk_wait_for_capabilities_exit, NULL),
+	[PE_SNK_EVALUATE_CAPABILITY] =
+		SMF_CREATE_STATE(pe_snk_evaluate_capability_entry, NULL, NULL, NULL),
+	[PE_SNK_SELECT_CAPABILITY] =
+		SMF_CREATE_STATE(pe_snk_select_capability_entry, pe_snk_select_capability_run, NULL,
+				 &pe_states[PE_SENDER_RESPONSE_PARENT]),
+	[PE_SNK_READY] = SMF_CREATE_STATE(pe_snk_ready_entry, pe_snk_ready_run, NULL, NULL),
+	[PE_SNK_HARD_RESET] =
+		SMF_CREATE_STATE(pe_snk_hard_reset_entry, pe_snk_hard_reset_run, NULL, NULL),
 	[PE_SNK_TRANSITION_TO_DEFAULT] = SMF_CREATE_STATE(
-		pe_snk_transition_to_default_entry,
-		pe_snk_transition_to_default_run,
-		NULL,
-		NULL),
-	[PE_SNK_GIVE_SINK_CAP] = SMF_CREATE_STATE(
-		pe_snk_give_sink_cap_entry,
-		pe_snk_give_sink_cap_run,
-		NULL,
-		NULL),
-	[PE_SNK_GET_SOURCE_CAP] = SMF_CREATE_STATE(
-		pe_snk_get_source_cap_entry,
-		pe_snk_get_source_cap_run,
-		NULL,
-		&pe_states[PE_SENDER_RESPONSE_PARENT]),
-	[PE_SNK_TRANSITION_SINK] = SMF_CREATE_STATE(
-		pe_snk_transition_sink_entry,
-		pe_snk_transition_sink_run,
-		pe_snk_transition_sink_exit,
-		NULL),
-	[PE_SEND_SOFT_RESET] = SMF_CREATE_STATE(
-		pe_send_soft_reset_entry,
-		pe_send_soft_reset_run,
-		NULL,
-		&pe_states[PE_SENDER_RESPONSE_PARENT]),
-	[PE_SOFT_RESET] = SMF_CREATE_STATE(
-		pe_soft_reset_entry,
-		pe_soft_reset_run,
-		NULL,
-		NULL),
-	[PE_SEND_NOT_SUPPORTED] = SMF_CREATE_STATE(
-		pe_send_not_supported_entry,
-		pe_send_not_supported_run,
-		NULL,
-		NULL),
-	[PE_DRS_EVALUATE_SWAP] = SMF_CREATE_STATE(
-		pe_drs_evaluate_swap_entry,
-		pe_drs_evaluate_swap_run,
-		NULL,
-		NULL),
-	[PE_DRS_SEND_SWAP] = SMF_CREATE_STATE(
-		pe_drs_send_swap_entry,
-		pe_drs_send_swap_run,
-		NULL,
-		&pe_states[PE_SENDER_RESPONSE_PARENT]),
-	[PE_CHUNK_RECEIVED] = SMF_CREATE_STATE(
-		pe_chunk_received_entry,
-		pe_chunk_received_run,
-		NULL,
-		NULL),
-	[PE_SUSPEND] = SMF_CREATE_STATE(
-		pe_suspend_entry,
-		pe_suspend_run,
-		NULL,
-		NULL),
+		pe_snk_transition_to_default_entry, pe_snk_transition_to_default_run, NULL, NULL),
+	[PE_SNK_GIVE_SINK_CAP] =
+		SMF_CREATE_STATE(pe_snk_give_sink_cap_entry, pe_snk_give_sink_cap_run, NULL, NULL),
+	[PE_SNK_GET_SOURCE_CAP] =
+		SMF_CREATE_STATE(pe_snk_get_source_cap_entry, pe_snk_get_source_cap_run, NULL,
+				 &pe_states[PE_SENDER_RESPONSE_PARENT]),
+	[PE_SNK_TRANSITION_SINK] =
+		SMF_CREATE_STATE(pe_snk_transition_sink_entry, pe_snk_transition_sink_run,
+				 pe_snk_transition_sink_exit, NULL),
+	[PE_SEND_SOFT_RESET] = SMF_CREATE_STATE(pe_send_soft_reset_entry, pe_send_soft_reset_run,
+						NULL, &pe_states[PE_SENDER_RESPONSE_PARENT]),
+	[PE_SOFT_RESET] = SMF_CREATE_STATE(pe_soft_reset_entry, pe_soft_reset_run, NULL, NULL),
+	[PE_SEND_NOT_SUPPORTED] = SMF_CREATE_STATE(pe_send_not_supported_entry,
+						   pe_send_not_supported_run, NULL, NULL),
+	[PE_DRS_EVALUATE_SWAP] =
+		SMF_CREATE_STATE(pe_drs_evaluate_swap_entry, pe_drs_evaluate_swap_run, NULL, NULL),
+	[PE_DRS_SEND_SWAP] = SMF_CREATE_STATE(pe_drs_send_swap_entry, pe_drs_send_swap_run, NULL,
+					      &pe_states[PE_SENDER_RESPONSE_PARENT]),
+#ifndef CONFIG_USBC_PRL_CHUNKING
+	[PE_CHUNK_RECEIVED] =
+		SMF_CREATE_STATE(pe_chunk_received_entry, pe_chunk_received_run, NULL, NULL),
+#endif
+	[PE_SUSPEND] = SMF_CREATE_STATE(pe_suspend_entry, pe_suspend_run, NULL, NULL),
 };
 BUILD_ASSERT(ARRAY_SIZE(pe_states) == PE_STATE_COUNT);

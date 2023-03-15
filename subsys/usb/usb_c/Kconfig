@@ -50,6 +50,11 @@ config USBC_CSM_SINK_ONLY
 
 endchoice
 
+config USBC_PRL_CHUNKING
+	bool "USB PD protocol layer chunking support"
+	help
+	  Allows the USB-C state machine to transmit and received chunked extended messages.
+
 module = USBC_STACK
 module-str = usbc stack
 source "subsys/logging/Kconfig.template.log_config"
