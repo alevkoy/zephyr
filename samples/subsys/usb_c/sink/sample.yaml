@@ -12,3 +12,16 @@ tests:
       type: one_line
       regex:
         - "Unattached.SNK"
+  sample.usbc.sink.chunking:
+    depends_on: tcpc
+    tags: usbc
+    platform_allow: b_g474e_dpow1
+    integration_platforms:
+      - b_g474e_dpow1
+    harness: console
+    harness_config:
+      type: one_line
+      regex:
+        - "Unattached.SNK"
+    extra_configs:
+      - CONFIG_USBC_PRL_CHUNKING=y
