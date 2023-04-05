@@ -88,6 +88,8 @@ struct usbc_port_data {
 	struct protocol_layer_tx_t *prl_tx;
 	/** Protocol Hard Reset Layer state machine object */
 	struct protocol_hard_reset_t *prl_hr;
+	/* TODO: Initialize this */
+	struct tch_t *tch;
 	/** Enables or Disables the Protocol Layer state machine */
 	bool prl_enabled;
 	/** The state of the Protocol Layer state machine */

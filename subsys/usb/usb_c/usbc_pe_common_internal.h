@@ -20,6 +20,8 @@
 enum pe_error {
 	/** Transmit error */
 	ERR_XMIT,
+	ERR_TCH_XMIT,
+	ERR_TCH_CHUNKED,
 };
 
 /**

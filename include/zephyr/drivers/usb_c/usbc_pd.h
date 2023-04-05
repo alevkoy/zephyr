@@ -286,6 +286,12 @@ extern "C" {
  */
 #define PD_T_CHUNKING_NOT_SUPPORTED_MAX_MS 50
 
+#define PD_T_CHUNK_SENDER_REQUEST_MIN_MS 24
+
+#define PD_T_CHUNK_SENDER_REQUEST_NOM_MS 27
+
+#define PD_T_CHUNK_SENDER_REQUEST_MAX_MS 30
+
 /**
  * @brief Convert bytes to PD Header data object count, where a
  *	  data object is 4-bytes.

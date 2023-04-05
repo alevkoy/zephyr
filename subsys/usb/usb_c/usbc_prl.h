@@ -46,8 +46,15 @@ struct protocol_layer_tx_t {
 	atomic_t flags;
 	/** last packet type we transmitted */
 	enum pd_packet_type last_xmit_type;
-	/** Current message type to transmit */
+	/** Current message type to transmit: enum pd_ctrl_msg_type, enum pd_data_msg_type, or enum
+	 * pd_ext_msg_type */
 	uint8_t msg_type;
+	/* TODO: This could probably be a flag. Needs to be initialized when sending/receiving a
+	 * message. */
+	bool ext;
+	/* TODO: These could probably be smaller. */
+	uint32_t send_offset;
+	uint32_t chunk_number_to_send;
 	/**
 	 * Power Delivery Messages meant for transmission are stored
 	 * in emsg
@@ -80,6 +87,16 @@ struct protocol_hard_reset_t {
 
 	/** tHardResetComplete timer */
 	struct usbc_timer_t pd_t_hard_reset_complete;
+};
+
+struct tch_t {
+	struct smf_ctx ctx;
+	const struct device *dev;
+	atomic_t flags;
+	enum pe_error error;
+
+	/* Timers */
+	struct usbc_timer_t pd_t_chunk_sender_request;
 };
 
 /**
