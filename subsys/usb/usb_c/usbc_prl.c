@@ -112,6 +112,15 @@ enum usbc_tch_state_t {
 	TCH_STATE_COUNT,
 };
 
+enum usbc_rch_state_t {
+	RCH_WAIT_FOR_MESSAGE_FROM_PROTOCOL_LAYER,
+	RCH_PASS_UP_MESSAGE,
+	RCH_PROCESSING_EXTENDED_MESSAGE,
+	RCH_REQUESTING_CHUNK,
+	RCH_WAITING_CHUNK,
+	RCH_REPORT_ERROR,
+};
+
 static const struct smf_state prl_tx_states[PRL_TX_STATE_COUNT];
 static const struct smf_state prl_hr_states[PRL_HR_STATE_COUNT];
 /* TODO: See if this still needs to be compiled in. */
@@ -1173,6 +1182,13 @@ static void tch_set_state(const struct device *dev, const enum usbc_tch_state_t 
 	__ASSERT(state < ARRAY_SIZE(tch_states), "invalid tch %d", state);
 	smf_set_state(SMF_CTX(tch), &tch_states[state]);
 }
+
+static enum usbc_rch_state_t rch_get_state(const struct device *dev)
+{
+	/* TODO: Make this actually do something, obviously */
+	return RCH_WAIT_FOR_MESSAGE_FROM_PROTOCOL_LAYER;
+}
+
 /*
  * TchWaitForMessageRequestFromPe
  */
@@ -1214,7 +1230,7 @@ static void tch_wait_for_message_request_from_pe_run(void *obj)
 		 *
 		 * Discard the Message
 		 */
-		if (rch_get_state(port) != RCH_WAIT_FOR_MESSAGE_FROM_PROTOCOL_LAYER) {
+		if (rch_get_state(dev) != RCH_WAIT_FOR_MESSAGE_FROM_PROTOCOL_LAYER) {
 			/* TODO: Pretty sure this is the same error as ERR_TCH_XMIT downstream. */
 			tch->error = ERR_XMIT;
 			tch_set_state(dev, TCH_REPORT_ERROR);
@@ -1494,17 +1510,19 @@ static void tch_message_received_entry(void *obj)
 {
 	struct tch_t *tch = (struct tch_t *)obj;
 	const struct device *dev = tch->dev;
-	struct protocol_layer_tx_t *prl_tx = ((struct usbc_port_data *)dev->data)->prl_tx;
+	struct usbc_port_data *data = (struct usbc_port_data *)dev->data;
+	struct rch_t *rch = data->rch;
+	struct protocol_layer_tx_t *prl_tx = data->prl_tx;
 
 	LOG_DBG("TCH_Message_Received");
 
 	/* Pass message to chunked Rx */
-	RCH_SET_FLAG(port, PRL_FLAGS_MSG_RECEIVED);
+	atomic_set_bit(&rch->flags, PRL_FLAGS_MSG_RECEIVED);
 
 	/* Clear extended message objects */
 	if (atomic_test_bit(&tch->flags, PRL_FLAGS_MSG_XMIT)) {
 		atomic_clear_bit(&tch->flags, PRL_FLAGS_MSG_XMIT);
-		pe_report_discard(port);
+		pe_report_discard(dev);
 	}
 	prl_tx->emsg.header.number_of_data_objects = 0;
 }

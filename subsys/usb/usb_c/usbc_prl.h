@@ -99,6 +99,12 @@ struct tch_t {
 	struct usbc_timer_t pd_t_chunk_sender_request;
 };
 
+struct rch_t {
+	struct smf_ctx ctx;
+	const struct device *dev;
+	atomic_t flags;
+};
+
 /**
  * @brief This function must only be called in the subsystem init function.
  *
